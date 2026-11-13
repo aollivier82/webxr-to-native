@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marble Machine Homepage</title>
+<meta name="description" content="A personal homepage that opens with a marble machine: one push sends a chain reaction down four steps and reveals Games, Writing, Videos and About.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Big+Shoulders+Display:wght@700;800;900&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!--CONTENT-->
+<div class="app" id="app" data-state="loading">
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <a class="skip-link" id="skipLink" href="#sections">Skip the machine</a>
+
+  <header class="titleblock">
+    <h1>Your Name</h1>
+    <p class="fig">Fig. 1. An unnecessarily complicated way to open a website.</p>
+  </header>
+
+  <!-- The four places to click. Each link sits on top of its sign in the 3D scene.
+       Change the label text or href here; the signs are drawn from these. -->
+  <nav class="hits" id="sections" aria-label="Sections">
+    <a class="hit" href="#games" data-color="red" data-icon="pad"><span>Games</span></a>
+    <a class="hit" href="#writing" data-color="yellow" data-icon="pen"><span>Writing</span></a>
+    <a class="hit" href="#videos" data-color="mint" data-icon="play"><span>Videos</span></a>
+    <a class="hit" href="#about" data-color="pink" data-icon="face"><span>About</span></a>
+  </nav>
+
+  <div class="dock">
+    <button class="push" id="push" type="button">Push the marble</button>
+    <p class="caption" id="caption" aria-live="polite"></p>
+  </div>
+
+  <div class="tools">
+    <button class="tool" id="skip" type="button" hidden>Skip</button>
+    <button class="tool" id="replay" type="button" hidden>Run it again</button>
+    <button class="tool" id="sound" type="button" aria-pressed="false">Sound off</button>
+  </div>
+</div>
+<noscript><style>.app .hits{position:static;display:grid;gap:12px;padding-block:24px}.app .hit{position:static;width:auto;height:auto;padding:14px 18px;background:var(--label);border:2px solid var(--ink)}.app .hit span{position:static;width:auto;height:auto;clip-path:none;font:800 28px var(--font-display);text-transform:uppercase}.dock,.tools{display:none}</style></noscript>
+<!--/CONTENT-->
+
+<!-- three.js r159 is the last release with a classic (non-module) build. That build prints one
+     deprecation notice on load; the wrapper below keeps it out of the console. -->
+<script>(function(){var w=console.warn;console.warn=function(m){if(typeof m==='string'&&m.indexOf('build/three.js')>-1)return;return w.apply(console,arguments)};window.__restoreWarn=function(){console.warn=w}})();</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+<script src="js/core.js"></script>
+<script src="js/machine.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

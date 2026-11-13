@@ -1,0 +1,303 @@
+/* Layout: one full-screen drafting sheet. The title block is pinned top-left, a single control
+   is docked low, and the 3D model owns everything else. Nothing scrolls. */
+:root {
+  /* sheet */
+  --paper: #E3EAF6;
+  --grid: #C6D2EA;
+  --grid-strong: #AFC0E2;
+  --ink: #17389A;
+  --ink-soft: #4C62A6;
+  --label: #F8FAFE;
+  --shade: #2A4DB3;
+  /* model */
+  --model: #FFFFFF;
+  --track: #EBBE80;
+  --steel: #C3CCDB;
+  --dark: #1A2A63;
+  /* one accent per step */
+  --red: #F4502E;
+  --yellow: #FFC42E;
+  --mint: #2FCFAE;
+  --pink: #FF86AE;
+  --sign-ink: #0E2470;
+  --btn-edge: #0E2470;
+  --is-dark: 0;
+
+  --font-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-hand: "Architects Daughter", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1543AE;
+    --grid: #2B5AC6;
+    --grid-strong: #3F6FDC;
+    --ink: #F4F7FF;
+    --ink-soft: #BCCBF3;
+    --label: #0D3190;
+    --shade: #06206B;
+    --model: #EEF3FF;
+    --track: #EDBE7C;
+    --steel: #C9D3E6;
+    --dark: #0F1D52;
+    --btn-edge: #071A5C;
+    --is-dark: 1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1543AE;
+  --grid: #2B5AC6;
+  --grid-strong: #3F6FDC;
+  --ink: #F4F7FF;
+  --ink-soft: #BCCBF3;
+  --label: #0D3190;
+  --shade: #06206B;
+  --model: #EEF3FF;
+  --track: #EDBE7C;
+  --steel: #C9D3E6;
+  --dark: #0F1D52;
+  --btn-edge: #071A5C;
+  --is-dark: 1;
+  color-scheme: dark;
+}
+
+html {
+  height: 100%;
+  box-sizing: border-box;
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
+}
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font: 14px/1.4 var(--font-ui);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+[hidden] { display: none !important; }
+
+.app {
+  position: relative;
+  height: 100%;
+  box-sizing: border-box;
+  padding-left: var(--gutter-l);
+  padding-right: var(--gutter-r);
+  padding-block: 14px;
+  overflow: hidden;
+}
+
+/* The scene fills the whole window, including under the phone's system bars. */
+#scene {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: manipulation;
+  outline: none;
+}
+.vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%, transparent 55%, color-mix(in srgb, var(--shade) 22%, transparent) 100%);
+}
+
+/* ---- title block ---- */
+.titleblock {
+  position: relative;
+  z-index: 2;
+  display: inline-grid;
+  gap: 2px;
+  max-width: min(calc(100% - 120px), 30rem);
+  padding: 8px 12px 9px;
+  background: var(--label);
+  border: 1.5px solid var(--ink);
+  pointer-events: none;
+}
+.titleblock h1 {
+  margin: 0;
+  font: 900 clamp(2rem, 1.2rem + 3.6vw, 3.6rem)/0.92 var(--font-display);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.titleblock .fig {
+  margin: 0;
+  color: var(--ink-soft);
+  font: 400 clamp(0.78rem, 0.7rem + 0.4vw, 0.98rem)/1.3 var(--font-hand);
+  text-wrap: balance;
+}
+
+/* ---- the four sign links: invisible boxes laid over the 3D signs ---- */
+.hits { position: static; }
+.hit {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  display: block;
+  width: 0;
+  height: 0;
+  color: inherit;
+  text-decoration: none;
+  visibility: hidden;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.hit.on { visibility: visible; }
+.hit:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 7px var(--label);
+}
+.hit span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- dock: the one control, then the running commentary ---- */
+.dock {
+  position: absolute;
+  z-index: 4;
+  left: var(--gutter-l);
+  right: var(--gutter-r);
+  bottom: 18px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+.push {
+  pointer-events: auto;
+  appearance: none;
+  margin: 0;
+  padding: 0.62em 1.15em 0.66em;
+  border: 2px solid var(--btn-edge);
+  border-radius: 3px;
+  background: var(--yellow);
+  color: var(--sign-ink);
+  box-shadow: 4px 4px 0 var(--btn-edge);
+  font: 800 clamp(1.35rem, 1.1rem + 1.2vw, 1.8rem)/1 var(--font-display);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.25s ease;
+}
+.push:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--btn-edge); }
+.push:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--btn-edge); }
+.push:focus-visible, .tool:focus-visible, .skip-link:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+.push:disabled, .app:not([data-state="ready"]) .push { opacity: 0; pointer-events: none; }
+.app[data-state="loading"] .push { visibility: hidden; }
+
+.caption {
+  margin: 0;
+  min-height: 1.4em;
+  padding: 4px 10px;
+  background: var(--label);
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  font: 400 clamp(0.9rem, 0.8rem + 0.5vw, 1.1rem)/1.3 var(--font-hand);
+  text-align: center;
+  transition: opacity 0.2s ease;
+}
+.caption:empty { opacity: 0; border-color: transparent; background: transparent; }
+.caption.flash { background: var(--sign-ink); border-color: var(--sign-ink); color: #fff; box-shadow: 3px 3px 0 var(--yellow); }
+.app[data-state="ready"] .caption, .app[data-state="loading"] .caption { display: none; }
+
+/* ---- small tools ---- */
+.tools {
+  position: absolute;
+  z-index: 4;
+  top: 14px;
+  right: var(--gutter-r);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.tool {
+  appearance: none;
+  margin: 0;
+  min-height: 32px;
+  padding: 4px 9px;
+  white-space: nowrap;
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  background: var(--label);
+  color: var(--ink);
+  font: 400 0.82rem/1 var(--font-hand);
+  cursor: pointer;
+}
+.tool:hover { background: var(--ink); color: var(--label); }
+
+.skip-link {
+  position: absolute;
+  z-index: 6;
+  left: var(--gutter-l);
+  top: 14px;
+  padding: 8px 12px;
+  background: var(--label);
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  font: 400 0.9rem/1 var(--font-hand);
+  transform: translateY(-300%);
+}
+.skip-link:focus { transform: none; }
+
+/* ---- plain fallback when WebGL is unavailable ---- */
+.app.no-gl #scene, .app.no-gl .dock, .app.no-gl .tools, .app.no-gl .vignette { display: none; }
+.app.no-gl .hits { display: grid; gap: 12px; max-width: 26rem; padding-block: 24px; }
+.hit[data-color="red"] { --sign: var(--red); }
+.hit[data-color="yellow"] { --sign: var(--yellow); }
+.hit[data-color="mint"] { --sign: var(--mint); }
+.hit[data-color="pink"] { --sign: var(--pink); }
+.app.no-gl .hit {
+  position: static;
+  visibility: visible;
+  width: auto;
+  height: auto;
+  padding: 12px 16px;
+  background: var(--sign, var(--label));
+  border: 3px solid var(--sign-ink);
+  color: var(--sign-ink);
+}
+.app.no-gl .hit span {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  font: 800 1.9rem/1 var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* wide screens (same test as the script's "wide" layout): the machine sits to the right,
+   so the control and the commentary move to the bottom-left corner */
+@media (min-aspect-ratio: 23/20) and (min-width: 640px) {
+  .tools { flex-direction: row-reverse; gap: 8px; }
+  .dock { justify-items: start; }
+  .titleblock { max-width: min(46%, 30rem); }
+}
+@media (min-aspect-ratio: 23/20) and (min-width: 900px) and (min-height: 520px) {
+  .app { padding-block: 22px; }
+  .tools { top: 22px; }
+  .dock { bottom: 26px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .push, .caption { transition: none; }
+}
