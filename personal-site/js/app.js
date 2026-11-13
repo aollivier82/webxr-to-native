@@ -178,7 +178,9 @@
       machine.retheme();
     }
     applyTheme();
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+    (function (mq) {
+      if (mq.addEventListener) mq.addEventListener('change', applyTheme); else if (mq.addListener) mq.addListener(applyTheme);
+    })(window.matchMedia('(prefers-color-scheme: dark)'));
     new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
     // the signs are drawn with the display font, so redraw them once it has arrived
     if (document.fonts && document.fonts.load) {
