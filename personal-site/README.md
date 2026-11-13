@@ -27,8 +27,9 @@ three.js r159 and two Google Fonts load from CDNs.
   `setupSheets()` in `js/app.js`. Put each section's content in `.sheet-body`.
 - **The four sections**: the links inside `<nav class="hits">` in `index.html`. The 3D signs are
   drawn from them, so changing the text changes the sign (the typewriter types whatever the
-  second label says). Point each `href` at a real page, then remove the `preventDefault()` in the
-  click handler in `js/app.js` so the links navigate.
+  second label says). To have the signs go to real pages
+  instead of opening the popup, set each `href` and replace the `sheets.open(...)` call in the
+  click handler in `js/app.js` with normal navigation.
 - **Colours**: the custom properties at the top of `styles.css`. The 3D scene reads the same
   tokens, in both light and dark themes.
 - **Pace**: `SPEED` at the top of `js/app.js` (1 is real time).
