@@ -1,17 +1,27 @@
-/* Layout: one full-screen drafting sheet. The title block is pinned top-left, a single control
-   is docked low, and the 3D model owns everything else. Nothing scrolls. */
+/* Layout: one full-screen room. The name card is pinned top-left, a single control is docked
+   low, and the 3D scene (a walnut marble machine in an apartment corner) owns everything else.
+   Nothing scrolls. */
 :root {
-  /* sheet */
-  --paper: #E3EAF6;
-  --grid: #C6D2EA;
-  --grid-strong: #AFC0E2;
-  --ink: #17389A;
-  --ink-soft: #4C62A6;
-  --label: #F8FAFE;
-  --shade: #2A4DB3;
+  --paper: #C7CFBC;      /* wall paint */
+  --grid: #DCD3C2;       /* hatching on unrevealed signs */
+  --grid-strong: #CFC4AE;
+  --ink: #26243A;
+  --ink-soft: #5B5668;
+  --label: #FBF7EE;
+  --shade: #3A2A1E;
+  --floor: #D6B78E;
+  --rug: #33416B;
+  --rug-2: #E9DFC8;
+  --rug-3: #C4553C;
+  --trim: #F3EFE6;
+  --sky: #A9CBE6;
+  --leaf: #4F7D49;
+  --pot: #B8653F;
+  --lampshade: #F1E6CF;
   /* model */
-  --model: #FFFFFF;
-  --track: #EBBE80;
+  --model: #8B5534;      /* walnut */
+  --brass: #D2A651;
+  --track: #EBC58C;
   --steel: #C3CCDB;
   --dark: #1A2A63;
   /* one accent per step */
@@ -32,15 +42,25 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #1543AE;
-    --grid: #2B5AC6;
-    --grid-strong: #3F6FDC;
-    --ink: #F4F7FF;
-    --ink-soft: #BCCBF3;
-    --label: #0D3190;
-    --shade: #06206B;
-    --model: #EEF3FF;
-    --track: #EDBE7C;
+    --paper: #28303D;
+    --grid: #39404E;
+    --grid-strong: #454C5B;
+    --ink: #F4EEE3;
+    --ink-soft: #BDB5A8;
+    --label: #1D2230;
+    --shade: #05070C;
+    --floor: #8C6A4C;
+    --rug: #232D4C;
+    --rug-2: #B8AD96;
+    --rug-3: #9E4634;
+    --trim: #B9B3A6;
+    --sky: #0E1A35;
+    --leaf: #3C6338;
+    --pot: #8E4E33;
+    --lampshade: #F5E3BC;
+    --model: #A26640;
+    --brass: #D8AE5C;
+    --track: #E3BC84;
     --steel: #C9D3E6;
     --dark: #0F1D52;
     --btn-edge: #071A5C;
@@ -49,15 +69,25 @@
   }
 }
 :root[data-theme="dark"] {
-  --paper: #1543AE;
-  --grid: #2B5AC6;
-  --grid-strong: #3F6FDC;
-  --ink: #F4F7FF;
-  --ink-soft: #BCCBF3;
-  --label: #0D3190;
-  --shade: #06206B;
-  --model: #EEF3FF;
-  --track: #EDBE7C;
+    --paper: #28303D;
+  --grid: #39404E;
+  --grid-strong: #454C5B;
+  --ink: #F4EEE3;
+  --ink-soft: #BDB5A8;
+  --label: #1D2230;
+  --shade: #05070C;
+  --floor: #8C6A4C;
+  --rug: #232D4C;
+  --rug-2: #B8AD96;
+  --rug-3: #9E4634;
+  --trim: #B9B3A6;
+  --sky: #0E1A35;
+  --leaf: #3C6338;
+  --pot: #8E4E33;
+  --lampshade: #F5E3BC;
+  --model: #A26640;
+  --brass: #D8AE5C;
+  --track: #E3BC84;
   --steel: #C9D3E6;
   --dark: #0F1D52;
   --btn-edge: #071A5C;
@@ -122,6 +152,7 @@ body {
   padding: 8px 12px 9px;
   background: var(--label);
   border: 1.5px solid var(--ink);
+  box-shadow: 3px 4px 0 color-mix(in srgb, var(--shade) 35%, transparent);
   pointer-events: none;
 }
 .titleblock h1 {
@@ -131,10 +162,11 @@ body {
   text-transform: uppercase;
   text-wrap: balance;
 }
-.titleblock .fig {
+.titleblock .role {
   margin: 0;
   color: var(--ink-soft);
-  font: 400 clamp(0.78rem, 0.7rem + 0.4vw, 0.98rem)/1.3 var(--font-hand);
+  font: 400 clamp(0.95rem, 0.85rem + 0.45vw, 1.2rem)/1.25 var(--font-hand);
+  color: var(--ink);
   text-wrap: balance;
 }
 
@@ -261,6 +293,85 @@ body {
 }
 .skip-link:focus { transform: none; }
 
+/* ---- popup page ---- */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding-block: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-bottom, 0px));
+  padding-left: var(--gutter-l);
+  padding-right: var(--gutter-r);
+  background: color-mix(in srgb, var(--shade) 48%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  animation: fade-in 0.2s ease;
+}
+.sheet {
+  --sign: var(--red);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 46rem);
+  height: min(100%, 34rem);
+  background: var(--label);
+  color: var(--ink);
+  border: 2.5px solid var(--sign-ink);
+  border-radius: 6px;
+  box-shadow: 6px 7px 0 var(--sign-ink);
+  overflow: hidden;
+  transform-origin: var(--ox, 50%) var(--oy, 50%);
+}
+.sheet[data-color="yellow"] { --sign: var(--yellow); }
+.sheet[data-color="mint"] { --sign: var(--mint); }
+.sheet[data-color="pink"] { --sign: var(--pink); }
+.sheet.opening { animation: sheet-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15); }
+.sheet.closing { animation: sheet-out 0.17s ease-in forwards; }
+.sheet-backdrop:has(.sheet.closing) { animation: fade-out 0.17s ease-in forwards; }
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 16px;
+  background: var(--sign);
+  color: var(--sign-ink);
+  border-bottom: 2.5px solid var(--sign-ink);
+}
+.sheet-icon { width: 40px; height: 40px; flex: none; }
+.sheet-head h2 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font: 800 clamp(1.8rem, 1.4rem + 1.6vw, 2.6rem)/1 var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sheet-close {
+  appearance: none;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  padding: 0;
+  border: 2.5px solid var(--sign-ink);
+  border-radius: 4px;
+  background: var(--label);
+  color: var(--ink);
+  box-shadow: 3px 3px 0 var(--sign-ink);
+  font: 400 34px/1 var(--font-ui);
+  cursor: pointer;
+}
+.sheet-close:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--sign-ink); }
+.sheet-close:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--sign-ink); }
+.sheet-close:focus-visible { outline: 3px solid var(--sign-ink); outline-offset: 3px; }
+.sheet-body { flex: 1; min-height: 0; overflow: auto; padding: 20px; }
+@keyframes sheet-in { from { transform: scale(0.35); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes sheet-out { to { transform: scale(0.6); opacity: 0; } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+@media (max-width: 600px) { .sheet { height: 100%; } }
+
 /* ---- plain fallback when WebGL is unavailable ---- */
 .app.no-gl #scene, .app.no-gl .dock, .app.no-gl .tools, .app.no-gl .vignette { display: none; }
 .app.no-gl .hits { display: grid; gap: 12px; max-width: 26rem; padding-block: 24px; }
@@ -303,4 +414,5 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .push, .caption { transition: none; }
+  .sheet.opening, .sheet.closing, .sheet-backdrop { animation: none; }
 }

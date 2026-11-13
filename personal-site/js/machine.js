@@ -59,6 +59,11 @@
       }
       prof.push([D.STEPS * D.TD, 0]);
       root.add(mesh(MM.extrudeX(prof, -D.W / 2, D.W / 2), mats.model));
+      for (let k = 1; k <= D.STEPS; k++) {                 // a brass strip along each nosing
+        const rail = cyl(0.05, 0.05, D.W + 0.04, mats.brass, 12);
+        rail.rotation.z = Math.PI / 2;
+        put(rail, 0, D.treadY(k) - 0.035, k * D.TD - 0.035, root);
+      }
     })();
 
     // ---------- signs: one split-flap board on each riser ----------

@@ -1,9 +1,11 @@
 # Marble machine homepage (prototype)
 
-A front-end prototype for a personal site. The visitor gets one thing to do: push a marble.
+A front-end prototype for Alix Ollivier's personal site (AI-enhanced creative strategist). The visitor gets one thing to do: push a marble.
 The marble sets off a chain reaction down a four-step staircase, and each step flips open one
 sign: Games, Writing, Videos, About. When the machine has finished, the camera pulls back so all
-four signs are on screen without scrolling. The signs are the navigation; nothing is behind them yet.
+four signs are on screen without scrolling. The machine is a walnut staircase standing in an
+apartment corner (plank floor, rug, window, lamp, plant). Each sign opens a popup page with a close
+button; the popups are empty for now.
 
 | Step | What happens | Sign |
 |---|---|---|
@@ -20,7 +22,9 @@ three.js r159 and two Google Fonts load from CDNs.
 
 ## Change it
 
-- **Your name and tagline**: the `<h1>` and `.fig` paragraph in `index.html`.
+- **Name and role**: the `<h1>` and `.role` paragraph in `index.html`.
+- **Popup content**: the popup is one panel in `index.html` (`.sheet`), retitled for each sign by
+  `setupSheets()` in `js/app.js`. Put each section's content in `.sheet-body`.
 - **The four sections**: the links inside `<nav class="hits">` in `index.html`. The 3D signs are
   drawn from them, so changing the text changes the sign (the typewriter types whatever the
   second label says). Point each `href` at a real page, then remove the `preventDefault()` in the
@@ -38,6 +42,7 @@ three.js r159 and two Google Fonts load from CDNs.
 - `styles.css` - design tokens (light and dark) and the overlay layout
 - `js/core.js` - maths, textures, the rolling/falling motion engine, geometry helpers
 - `js/machine.js` - the staircase, signs and the four stages
+- `js/room.js` - the apartment around the machine
 - `js/app.js` - renderer, lights, camera direction, controls, synthesised sound
 
 ## Behaviour worth knowing

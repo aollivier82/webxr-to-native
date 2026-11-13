@@ -71,7 +71,7 @@
   // ---------- theme tokens ----------
   // Colours live in styles.css as custom properties; the 3D scene reads them from there,
   // so the page and the model always agree and both follow light/dark.
-  const TOKEN_NAMES = ['paper', 'grid', 'grid-strong', 'ink', 'ink-soft', 'label', 'shade', 'model', 'track',
+  const TOKEN_NAMES = ['paper', 'grid', 'floor', 'rug', 'rug-2', 'rug-3', 'trim', 'sky', 'brass', 'leaf', 'pot', 'lampshade', 'ink', 'ink-soft', 'label', 'shade', 'model', 'track',
     'steel', 'dark', 'red', 'yellow', 'mint', 'pink', 'sign-ink'];
   MM.readTokens = function () {
     const cs = getComputedStyle(document.documentElement);
@@ -92,6 +92,7 @@
       label: std('label', { roughness: 0.85 }),
       track: std('track', { roughness: 0.7 }),
       steel: std('steel', { roughness: 0.28, metalness: 0.85 }),
+      brass: std('brass', { roughness: 0.3, metalness: 0.9 }),
       dark: std('dark', { roughness: 0.5 }),
       ink: std('sign-ink', { roughness: 0.6 }),
       red: std('red', { roughness: 0.42 }),
@@ -121,20 +122,57 @@
   }
   MM.canvasTexture = canvasTexture;
 
-  // drafting grid for the floor: one tile covers 4 x 4 units
-  MM.gridTexture = function (getTokens) {
-    const tex = canvasTexture(512, 512, function (ctx, w, h) {
-      const css = getTokens().css, cell = w / 4;
-      ctx.fillStyle = css.paper; ctx.fillRect(0, 0, w, h);
-      ctx.strokeStyle = css.grid; ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      for (let i = 1; i < 4; i++) {
-        ctx.moveTo(i * cell, 0); ctx.lineTo(i * cell, h);
-        ctx.moveTo(0, i * cell); ctx.lineTo(w, i * cell);
+  // Grey-scale wood grain, tinted by the material colour. Grain runs along the texture's v axis.
+  MM.woodTexture = function () {
+    const r = rng(21);
+    const tex = canvasTexture(512, 1024, function (c, w, h) {
+      c.fillStyle = 'rgb(236,236,236)'; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < 16; i++) {                       // broad bands of figure
+        c.fillStyle = 'rgba(0,0,0,' + (0.04 + r() * 0.09) + ')';
+        c.fillRect(r() * w, 0, 12 + r() * 60, h);
       }
-      ctx.stroke();
-      ctx.strokeStyle = css['grid-strong']; ctx.lineWidth = 7;   // half of this falls on each side of the tile seam
-      ctx.strokeRect(0, 0, w, h);
+      for (let i = 0; i < 260; i++) {                      // fine wavy grain lines
+        const x0 = r() * w, amp = 2 + r() * 9, per = 140 + r() * 260, ph = r() * 7;
+        c.strokeStyle = 'rgba(0,0,0,' + (0.05 + r() * 0.16) + ')';
+        c.lineWidth = 0.6 + r() * 2;
+        c.beginPath();
+        for (let y = 0; y <= h; y += 16) {
+          const x = x0 + amp * Math.sin(y / per * Math.PI * 2 + ph);
+          if (y === 0) c.moveTo(x, y); else c.lineTo(x, y);
+        }
+        c.stroke();
+      }
+    });
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+  };
+
+  // Grey-scale floorboards: one tile is 6 x 6 units, eight boards wide, boards running along v.
+  MM.plankTexture = function () {
+    const r = rng(9);
+    const tex = canvasTexture(1024, 1024, function (c, w, h) {
+      const bw = w / 8;
+      for (let col = 0; col < 8; col++) {
+        const seams = [Math.floor(r() * h)];
+        while (seams.length < 3) seams.push((seams[seams.length - 1] + 300 + Math.floor(r() * 380)) % h);
+        seams.sort((a, b) => a - b);
+        for (let i = 0; i < seams.length; i++) {
+          const a = seams[i], b = i + 1 < seams.length ? seams[i + 1] : seams[0] + h;
+          const tone = Math.round(205 + r() * 45);
+          c.fillStyle = 'rgb(' + tone + ',' + tone + ',' + tone + ')';
+          [0, -h].forEach(function (off) { c.fillRect(col * bw, a + off, bw, b - a); });
+          for (let k = 0; k < 9; k++) {                    // grain inside the board
+            const x = col * bw + 6 + r() * (bw - 12);
+            c.strokeStyle = 'rgba(0,0,0,' + (0.04 + r() * 0.08) + ')';
+            c.lineWidth = 1 + r() * 1.5;
+            [0, -h].forEach(function (off) { c.beginPath(); c.moveTo(x, a + off); c.lineTo(x + (r() - 0.5) * 6, b + off); c.stroke(); });
+          }
+          c.fillStyle = 'rgba(0,0,0,0.38)';
+          c.fillRect(col * bw, a, bw, 3);
+        }
+        c.fillStyle = 'rgba(0,0,0,0.42)';
+        c.fillRect(col * bw, 0, 3, h);
+      }
     });
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
     return tex;
@@ -226,6 +264,8 @@
       ctx.beginPath(); ctx.moveTo(ax - a, ay - a * 1.25); ctx.lineTo(ax, ay); ctx.lineTo(ax - a, ay + a * 1.25); ctx.stroke();
     }
   };
+
+  MM.drawIcon = drawIcon;
 
   // the unrevealed side of a sign: hatched, like a part of a drawing still to be filled in
   MM.drawBlankFace = function (ctx, w, h, css) {

@@ -8,10 +8,65 @@
   const FOV = 18;
   const SPEED = 1.06;              // 1 = real time; raise to make the whole run brisker
 
+  function sectionsFrom(hitEls) {
+    return hitEls.map(function (el) {
+      return { id: (el.getAttribute('href') || '').replace('#', ''), label: el.textContent.trim(), color: el.dataset.color || 'red', icon: el.dataset.icon || 'face', el: el };
+    });
+  }
+
+  // ---------- the popup pages: one panel, retitled for whichever sign was pressed ----------
+  function setupSheets(sections, reduced) {
+    const app = $('app'), backdrop = $('sheetBackdrop'), sheet = $('sheet'), title = $('sheetTitle'), icon = $('sheetIcon'), close = $('sheetClose');
+    let current = -1, hideTimer = 0;
+    function open(i, from) {
+      const sec = sections[i], css = MM.readTokens().css;
+      clearTimeout(hideTimer);
+      sheet.dataset.color = sec.color;
+      title.textContent = sec.label;
+      const c = icon.getContext('2d'), s = icon.width;
+      c.clearRect(0, 0, s, s);
+      MM.drawIcon(c, sec.icon, s / 2, s / 2, s * 0.8, css['sign-ink'], css[sec.color]);
+      backdrop.hidden = false;
+      sheet.classList.remove('closing', 'opening');
+      // grow out of the sign that was pressed
+      const r = sheet.getBoundingClientRect(), h = from.getBoundingClientRect();
+      sheet.style.setProperty('--ox', Math.round(h.left + h.width / 2 - r.left) + 'px');
+      sheet.style.setProperty('--oy', Math.round(h.top + h.height / 2 - r.top) + 'px');
+      void sheet.offsetWidth;
+      sheet.classList.add('opening');
+      app.inert = true;
+      app.setAttribute('aria-hidden', 'true');
+      current = i;
+      close.focus({ preventScroll: true });
+    }
+    function shut() {
+      if (current < 0) return;
+      const back = sections[current].el;
+      current = -1;
+      app.inert = false;
+      app.removeAttribute('aria-hidden');
+      sheet.classList.remove('opening');
+      sheet.classList.add('closing');
+      hideTimer = setTimeout(function () { backdrop.hidden = true; sheet.classList.remove('closing'); }, reduced ? 0 : 170);
+      back.focus({ preventScroll: true });
+    }
+    close.addEventListener('click', shut);
+    backdrop.addEventListener('click', function (e) { if (e.target === backdrop) shut(); });
+    document.addEventListener('keydown', function (e) {
+      if (current < 0) return;
+      if (e.key === 'Escape') { e.preventDefault(); shut(); }
+      else if (e.key === 'Tab') { e.preventDefault(); close.focus(); }
+    });
+    return { open: open, close: shut, isOpen: () => current >= 0 };
+  }
+
   function fallback() {
     const app = $('app');
     app.classList.add('no-gl');
     app.dataset.state = 'done';
+    const hitEls = Array.prototype.slice.call(app.querySelectorAll('.hit'));
+    const sheets = setupSheets(sectionsFrom(hitEls), true);
+    hitEls.forEach(function (el, i) { el.addEventListener('click', function (e) { e.preventDefault(); sheets.open(i, el); }); });
   }
 
   // ---------- sound: everything is synthesised, nothing is downloaded ----------
@@ -110,19 +165,17 @@
     const mats = MM.makeMaterials();
     MM.applyTokens(mats, tokens);
 
-    const gridTex = MM.gridTexture(getTokens);
-    gridTex.repeat.set(60, 60);
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.MeshBasicMaterial({ map: gridTex }));
-    floor.rotation.x = -Math.PI / 2;
-    scene.add(floor);
-    const shadowMat = new THREE.ShadowMaterial({ color: tokens.css.shade, opacity: 0.26, depthWrite: false });
-    const shadowCatcher = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), shadowMat);
-    shadowCatcher.rotation.x = -Math.PI / 2;
-    shadowCatcher.position.set(2, 0.006, 0);
-    shadowCatcher.receiveShadow = true;
-    scene.add(shadowCatcher);
+    // the staircase is solid walnut
+    const wood = MM.woodTexture();
+    wood.repeat.set(0.45, 0.2);
+    mats.model.map = wood;
+    mats.model.roughness = 0.48;
 
-    const hemi = new THREE.HemisphereLight(0xffffff, 0xb9c8ee, 1.25);
+    const room = MM.buildRoom({ mats: mats, getTokens: getTokens });
+    scene.add(room.group);
+    MM.applyTokens(mats, tokens);
+
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x8a6a4f, 1.15);
     scene.add(hemi);
     const key = new THREE.DirectionalLight(0xfff8ee, 2.45);
     key.position.set(-7.5, 16, 15);
@@ -139,7 +192,7 @@
       const pm = new THREE.PMREMGenerator(renderer);
       const sc = new THREE.Scene();
       const geo = new THREE.SphereGeometry(40, 32, 16), col = [];
-      const top = new THREE.Color('#ffffff'), mid = new THREE.Color('#d6e0f6'), low = new THREE.Color('#6f86c4'), c = new THREE.Color();
+      const top = new THREE.Color('#fff8ee'), mid = new THREE.Color('#dccdb6'), low = new THREE.Color('#6a4c36'), c = new THREE.Color();
       for (let i = 0; i < geo.attributes.position.count; i++) {
         const y = geo.attributes.position.getY(i) / 40;
         if (y > 0) c.copy(mid).lerp(top, Math.min(1, y * 1.6)); else c.copy(mid).lerp(low, Math.min(1, -y * 1.4));
@@ -156,10 +209,13 @@
     })();
     mats.steel.envMap = env;
     mats.steel.envMapIntensity = 1.1;
+    mats.brass.envMap = env;
+    mats.brass.envMapIntensity = 1.2;
+    mats.model.envMap = env;
+    mats.model.envMapIntensity = 0.35;
 
-    const sections = hitEls.map(function (el) {
-      return { id: (el.getAttribute('href') || '').replace('#', ''), label: el.textContent.trim(), color: el.dataset.color || 'red', icon: el.dataset.icon || 'face', el: el };
-    });
+    const sections = sectionsFrom(hitEls);
+    const sheets = setupSheets(sections, reduced);
     sections.forEach(function (s) { s.siblings = sections.map(x => x.label); });
     const machine = MM.buildMachine({
       mats: mats, getTokens: getTokens, sections: sections, env: env,
@@ -171,10 +227,13 @@
       tokens = MM.readTokens();
       MM.applyTokens(mats, tokens);
       scene.background.set(tokens.css.paper);
-      shadowMat.color.set(tokens.css.shade);
-      shadowMat.opacity = tokens.dark ? 0.42 : 0.24;
-      hemi.groundColor.set(tokens.dark ? '#7f9ae6' : '#b9c8ee');
-      gridTex.redraw();
+      // day: daylight from the window side; evening: dimmer, warmer, the lamp does more
+      hemi.color.set(tokens.dark ? '#9fb0d6' : '#fff6ea');
+      hemi.groundColor.set(tokens.dark ? '#3a2c22' : '#8a6a4f');
+      hemi.intensity = tokens.dark ? 0.75 : 1.15;
+      key.color.set(tokens.dark ? '#ffd9a8' : '#fff1de');
+      key.intensity = tokens.dark ? 1.5 : 2.35;
+      room.retheme(tokens.dark);
       machine.retheme();
     }
     applyTheme();
@@ -412,7 +471,8 @@
       el.addEventListener('click', function (e) {
         e.preventDefault();
         sign.pressAt = st.wall;
-        flash = { text: sections[i].label + ' page goes here.', until: st.wall + 2.4 };
+        machine.signs.forEach(function (x) { x.hoverTarget = 0; });
+        sheets.open(i, el);
       });
       const over = function (v) { return function () { sign.hoverTarget = v; }; };
       el.addEventListener('pointerenter', over(1));
