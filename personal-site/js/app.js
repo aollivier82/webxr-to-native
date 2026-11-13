@@ -186,7 +186,7 @@
     }
 
     // ---------- camera ----------
-    const camera = new THREE.PerspectiveCamera(FOV, 1, 4, 260);
+    const camera = new THREE.PerspectiveCamera(FOV, 1, 8, 260);
     const TAN = Math.tan(FOV * Math.PI / 360);
     const V = () => new THREE.Vector3();
     const tmp = V(), right = V(), up = V();
@@ -212,7 +212,7 @@
     [-1, 1].forEach(function (s) { fitPts.push(new THREE.Vector3(s * D.W / 2, 0, 0), new THREE.Vector3(s * D.W / 2, 0, D.STEPS * D.TD)); });
     (machine.fitExtras || []).forEach(p => fitPts.push(p));
 
-    const fitCam = new THREE.PerspectiveCamera(FOV, 1, 4, 260);
+    const fitCam = new THREE.PerspectiveCamera(FOV, 1, 8, 260);
     // the target point and distance that make the whole machine fill `rect` (in CSS pixels)
     function fit(L) {
       const p = { target: new THREE.Vector3(0, 4.2, 3.6), dist: 40, yaw: L.yaw, pitch: L.pitch };
@@ -247,6 +247,7 @@
     let L = null, finalPose = null;
     function layout() {
       const vw = canvas.clientWidth || window.innerWidth, vh = canvas.clientHeight || window.innerHeight;
+      if (!(vw > 40 && vh > 40)) return;                 // not on screen yet; try again on the next resize
       const wide = vw / vh > 1.15 && vw >= 640;
       const tb = titleEl.getBoundingClientRect(), ar = app.getBoundingClientRect();
       let rect;
@@ -322,8 +323,8 @@
     }
 
     // ---------- state ----------
-    const st = { t: 0, playing: false, phase: 'ready', wall: 0, last: performance.now(), frames: 0 };
-    let slow = 0;
+    const st = { t: 0, playing: false, phase: 'ready', wall: 0, last: performance.now(), frames: 0, drawn: 0 };
+    let slow = 0, wasDrawn = false, rate = 1 / 60;
     function setPhase(p) {
       st.phase = p;
       app.dataset.state = p;
@@ -331,6 +332,7 @@
       replayBtn.hidden = p !== 'done';
       skipLink.hidden = p === 'done';
       pushBtn.disabled = p !== 'ready';
+      soundBtn.hidden = p === 'ready';         // on arrival there is exactly one thing to press
     }
 
     const captions = (machine.captions || []).slice().sort((a, b) => a.t - b.t);
@@ -392,6 +394,16 @@
       if (Math.hypot(e.clientX - sx, e.clientY - sy) < 64) push();
     });
 
+    canvas.addEventListener('pointermove', function (e) {
+      let near = false;
+      if (st.phase === 'ready' && machine.marble) {
+        tmp.copy(machine.marble.position).project(camera);
+        const r = canvas.getBoundingClientRect();
+        near = Math.hypot(e.clientX - (r.left + (tmp.x * 0.5 + 0.5) * r.width), e.clientY - (r.top + (-tmp.y * 0.5 + 0.5) * r.height)) < 64;
+      }
+      canvas.style.cursor = near ? 'pointer' : '';
+    });
+
     // the sign links: nothing behind them yet, so a click just says so
     hitEls.forEach(function (el, i) {
       const sign = machine.signs[i];
@@ -434,7 +446,20 @@
       requestAnimationFrame(frame);
       const dt = Math.min(0.05, Math.max(0, (now - st.last) / 1000));
       st.last = now;
+      if (!L) { layout(); if (!L) return; }
       st.wall += dt;
+      rate += (dt - rate) * 0.05;                         // smoothed time between browser frames
+      // keep the frame rate up on slower phones: trade away resolution first, then shadow detail.
+      // (dt after a drawn frame is how long that frame took)
+      if (wasDrawn && !navigator.webdriver && document.visibilityState === 'visible') {
+        slow = dt > 1 / 27 ? slow + 1 : Math.max(0, slow - 2);     // a steady 30 fps (battery savers) is left alone
+        if (slow > 40) {
+          slow = 0;
+          if (pixelRatio > 1.01) { pixelRatio = Math.max(1, pixelRatio - 0.4); renderer.setPixelRatio(pixelRatio); renderer.setSize(L.vw, L.vh, false); }
+          else if (key.shadow.mapSize.x > 1024) { key.shadow.mapSize.set(1024, 1024); if (key.shadow.map) { key.shadow.map.dispose(); key.shadow.map = null; } }
+        }
+      }
+      wasDrawn = false;
       if (st.playing) {
         const before = st.t;
         st.t += dt * SPEED;
@@ -445,20 +470,17 @@
         }
         if (st.t >= machine.duration) finish(true);
       }
+      let busy = st.playing || !!trans;
       machine.signs.forEach(function (s) {
         s.hover += ((s.hoverTarget || 0) - s.hover) * Math.min(1, dt * 14);
         s.press = s.pressAt == null ? 0 : Math.max(0, M.wobble(st.wall - s.pressAt, 22, 9));
+        if (Math.abs((s.hoverTarget || 0) - s.hover) > 0.01 || (s.pressAt != null && st.wall - s.pressAt < 0.6)) busy = true;
       });
-      machine.update(st.t, st.wall);
-      if (!navigator.webdriver && dt > 0 && document.visibilityState === 'visible') {
-        slow = dt > 1 / 38 ? slow + 1 : Math.max(0, slow - 2);
-        if (slow > 50) {
-          slow = 0;
-          if (pixelRatio > 1.01) { pixelRatio = Math.max(1, pixelRatio - 0.4); renderer.setPixelRatio(pixelRatio); renderer.setSize(L.vw, L.vh, false); }
-          else if (key.shadow.mapSize.x > 1024) { key.shadow.mapSize.set(1024, 1024); key.shadow.map.dispose(); key.shadow.map = null; }
-        }
-      }
-
+      // while idle (waiting for the push, or sitting on the finished menu) draw every other frame,
+      // unless the browser is already holding the page to a low frame rate
+      st.frames++;
+      if (!busy && rate < 0.021 && (st.frames & 1)) return;
+      machine.update(st.t, reduced ? 0 : st.wall);
       if (override) copyPose(shown, override);
       else {
         poseAt(st.t, st.wall, desired);
@@ -478,7 +500,8 @@
       renderer.render(scene, camera);
       updateHits();
       updateCaption();
-      st.frames++;
+      st.drawn++;
+      wasDrawn = true;
     }
 
     layout();

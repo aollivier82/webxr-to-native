@@ -590,7 +590,7 @@
       const pts = [new THREE.Vector2(FUN.throat, FUN.throatY - 0.1)];
       for (let i = 0; i <= 18; i++) { const r = M.lerp(FUN.throat, FUN.rim, Math.pow(i / 18, 1.4)); pts.push(new THREE.Vector2(r, funY(r))); }
       const m = mats.pink.clone(); m.side = THREE.DoubleSide; mats.funnel = m;
-      put(mesh(new THREE.LatheGeometry(pts, 48), m), FUN.x, 0, FUN.z, s4);
+      put(mesh(new THREE.LatheGeometry(pts, 48), m), FUN.x, 0, FUN.z, s4).receiveShadow = false;   // a thin two-sided shell shadows itself badly
       const rim = mesh(new THREE.TorusGeometry(FUN.rim, 0.028, 10, 48), mats.pink); rim.rotation.x = Math.PI / 2;
       put(rim, FUN.x, FUN.rimY, FUN.z, s4);
       [55, -55, 125, -125].forEach(function (deg) {

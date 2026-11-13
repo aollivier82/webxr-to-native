@@ -101,7 +101,10 @@ body {
   display: block;
   touch-action: manipulation;
   outline: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
+.push, .tool, .hit { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .vignette {
   position: fixed;
   inset: 0;
