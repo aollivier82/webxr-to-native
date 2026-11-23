@@ -48,7 +48,8 @@ three.js r159 and two Google Fonts load from CDNs.
 
 ## Behaviour worth knowing
 
-- Sound is off until the visitor turns it on. All sounds are synthesised in the browser.
+- Sound is on by default and starts with the push (browsers allow audio only after a tap or click).
+  The visitor can turn it off once the marble is moving. All sounds are synthesised in the browser.
 - "Skip" appears once the marble is moving; "Run it again" appears at the end.
 - With `prefers-reduced-motion`, the page opens on the finished menu.
 - Without WebGL, the four links show as a plain list.

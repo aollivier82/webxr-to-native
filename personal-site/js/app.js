@@ -71,7 +71,7 @@
 
   // ---------- sound: everything is synthesised, nothing is downloaded ----------
   MM.sound = (function () {
-    let ctx = null, on = false, out = null, noiseBuf = null;
+    let ctx = null, on = true, out = null, noiseBuf = null;   // on by default; browsers still wait for the first tap
     function ensure() {
       if (ctx) return;
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -132,7 +132,7 @@
     };
     return {
       enable: function (v) { on = v; if (v) { ensure(); if (ctx && ctx.state !== 'running') ctx.resume(); } },
-      unlock: function () { if (on && ctx && ctx.state !== 'running') ctx.resume(); },
+      unlock: function () { if (!on) return; ensure(); if (ctx && ctx.state !== 'running') ctx.resume(); },
       play: function (e) { if (on && ctx && ctx.state === 'running' && voices[e.type]) voices[e.type](e); }
     };
   })();
@@ -438,7 +438,7 @@
     });
 
     // sound is opt-in
-    let soundOn = false;
+    let soundOn = true;
     soundBtn.addEventListener('click', function () {
       soundOn = !soundOn;
       soundBtn.setAttribute('aria-pressed', String(soundOn));
