@@ -591,5 +591,18 @@
     };
   }
 
+  // profile photo: pulled live from X/Twitter through unavatar.io, so it follows changes there.
+  // If the handle is empty or the picture can't load, the initials stay.
+  (function () {
+    const a = $('avatar'), img = $('avatarImg');
+    const handle = (a.dataset.xHandle || '').replace(/^@/, '').trim();
+    if (!/^[A-Za-z0-9_]{1,15}$/.test(handle)) return;
+    a.href = 'https://x.com/' + handle;
+    a.setAttribute('aria-label', 'Alix Ollivier on X (@' + handle + ')');
+    img.onload = function () { img.hidden = false; };
+    img.onerror = function () { img.hidden = true; };
+    img.src = 'https://unavatar.io/x/' + handle + '?fallback=false';
+  })();
+
   MM.ensureThree().then(start, fallback);
 })(window.MM = window.MM || {});

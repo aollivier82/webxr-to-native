@@ -23,6 +23,9 @@ three.js r159 and two Google Fonts load from CDNs.
 ## Change it
 
 - **Name and role**: the `<h1>` and `.role` paragraph in `index.html`.
+- **Profile photo**: `data-x-handle` on `#avatar` in `index.html` (currently `aollivier82`). The
+  picture is fetched live from X through unavatar.io, so changing it on X changes it here
+  (caches can take up to a day). It links to the X profile. If it can't load, the initials show.
 - **Popup content**: the popup is one panel in `index.html` (`.sheet`), retitled for each sign by
   `setupSheets()` in `js/app.js`. Put each section's content in `.sheet-body`.
 - **The four sections**: the links inside `<nav class="hits">` in `index.html`. The 3D signs are
