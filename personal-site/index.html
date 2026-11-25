@@ -55,7 +55,46 @@
   </div>
 </div>
 
-<!-- The popup page each sign opens. Empty for now: put each section's content in .sheet-body. -->
+<!-- What each popup shows: a <template> per section, named sheet-<href without #>.
+     A section with no template opens an empty panel. -->
+<template id="sheet-games">
+  <article class="entry">
+    <div class="entry-media">
+      <img src="assets/balloon-bats/key-art.jpg" width="1200" height="675" alt="Balloon Bats key art: a small orange bat gliding over a floating island with an airship and hot-air balloons." loading="lazy">
+      <p class="entry-caption">Key art. Balloon Bats, by Mayflower Worlds.</p>
+    </div>
+    <div class="entry-text">
+      <p class="entry-eyebrow">Multiplayer VR &middot; Meta Quest &middot; Early Access</p>
+      <h3>Balloon Bats</h3>
+      <p class="entry-tagline">Your arms are your wings.</p>
+      <p>Balloon Bats is a multiplayer VR adventure for Meta Quest. You play a small bat on a floating island high above the clouds, and there is no thumbstick for flying: you flap your real arms to take off, stretch them out to glide, and pull them in to dive. Your own body is the controller, and the sky is yours to figure out.</p>
+      <p>Every flight starts at the treehouse, with a whole sky outside the door. From there the island opens up: an airship moored among the trees, a marsh dotted with lily pads, and supply balloons drifting just out of reach. Pop the balloons, carry fruit back home, and work toward your New Pioneers Badge.</p>
+      <p>The island has locals, and not all of them are friendly. Keep an eye on the frogs in the marsh, and keep your wings ready. Stay out past sunset and the same island turns into a different kind of adventure: an owl starts hunting, and the lantern light is your only refuge.</p>
+      <p>It is better with other bats. You meet other players in the air, find a flying buddy and share the view. The game is in Early Access, and its Discord community helps shape what comes next.</p>
+      <dl class="entry-facts">
+        <div><dt>Platform</dt><dd>Meta Quest (headset required)</dd></div>
+        <div><dt>Players</dt><dd>Multiplayer</dd></div>
+        <div><dt>Status</dt><dd>Early Access</dd></div>
+        <div><dt>Studio</dt><dd>Mayflower Worlds</dd></div>
+      </dl>
+    </div>
+    <div class="entry-gallery">
+      <h4>Captured in the game</h4>
+      <ul>
+        <li><img src="assets/balloon-bats/airship.jpg" width="480" height="640" alt="An airship moored beside the treehouse on the island." loading="lazy"><span>The airship by the treehouse</span></li>
+        <li><img src="assets/balloon-bats/frog.jpg" width="480" height="640" alt="A large frog sitting in the marsh among lily pads, a supply balloon floating behind it." loading="lazy"><span>Mind the locals</span></li>
+        <li><img src="assets/balloon-bats/night.jpg" width="480" height="640" alt="The floating island at night, seen from above." loading="lazy"><span>The island after dark</span></li>
+      </ul>
+    </div>
+    <div class="entry-links">
+      <a class="entry-cta" href="https://www.meta.com/en-gb/experiences/balloon-bats/27706668015613967/" target="_blank" rel="noopener">Get it on Meta Quest &#8599;</a>
+      <a href="https://balloonbatsvr.com/" target="_blank" rel="noopener">balloonbatsvr.com &#8599;</a>
+      <a href="https://discord.gg/EfM38YrqDZ" target="_blank" rel="noopener">Join the Discord &#8599;</a>
+    </div>
+  </article>
+</template>
+
+<!-- The popup page each sign opens. -->
 <div class="sheet-backdrop" id="sheetBackdrop" hidden>
   <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" data-color="red">
     <header class="sheet-head">
@@ -63,7 +102,7 @@
       <h2 id="sheetTitle">Games</h2>
       <button class="sheet-close" id="sheetClose" type="button" aria-label="Close">&times;</button>
     </header>
-    <div class="sheet-body"></div>
+    <div class="sheet-body" id="sheetBody" tabindex="-1"></div>
   </section>
 </div>
 <noscript><style>.app .hits{position:static;display:grid;gap:12px;padding-block:24px}.app .hit{position:static;width:auto;height:auto;padding:14px 18px;background:var(--label);border:2px solid var(--ink)}.app .hit span{position:static;width:auto;height:auto;clip-path:none;font:800 28px var(--font-display);text-transform:uppercase}.dock,.tools{display:none}</style></noscript>

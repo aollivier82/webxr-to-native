@@ -16,13 +16,16 @@
 
   // ---------- the popup pages: one panel, retitled for whichever sign was pressed ----------
   function setupSheets(sections, reduced) {
-    const app = $('app'), backdrop = $('sheetBackdrop'), sheet = $('sheet'), title = $('sheetTitle'), icon = $('sheetIcon'), close = $('sheetClose');
+    const app = $('app'), backdrop = $('sheetBackdrop'), sheet = $('sheet'), title = $('sheetTitle'), icon = $('sheetIcon'), close = $('sheetClose'), body = $('sheetBody');
     let current = -1, hideTimer = 0;
     function open(i, from) {
       const sec = sections[i], css = MM.readTokens().css;
       clearTimeout(hideTimer);
       sheet.dataset.color = sec.color;
       title.textContent = sec.label;
+      const tpl = document.getElementById('sheet-' + sec.id);
+      body.replaceChildren(tpl ? tpl.content.cloneNode(true) : '');
+      body.scrollTop = 0;
       const c = icon.getContext('2d'), s = icon.width;
       c.clearRect(0, 0, s, s);
       MM.drawIcon(c, sec.icon, s / 2, s / 2, s * 0.8, css['sign-ink'], css[sec.color]);
@@ -55,7 +58,12 @@
     document.addEventListener('keydown', function (e) {
       if (current < 0) return;
       if (e.key === 'Escape') { e.preventDefault(); shut(); }
-      else if (e.key === 'Tab') { e.preventDefault(); close.focus(); }
+      else if (e.key === 'Tab') {                 // keep focus inside the panel
+        const f = Array.prototype.slice.call(sheet.querySelectorAll('a[href], button, [tabindex="0"]'));
+        const i = f.indexOf(document.activeElement);
+        e.preventDefault();
+        f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+      }
     });
     return { open: open, close: shut, isOpen: () => current >= 0 };
   }

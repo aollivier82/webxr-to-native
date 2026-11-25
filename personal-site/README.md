@@ -26,8 +26,10 @@ three.js r159 and two Google Fonts load from CDNs.
 - **Profile photo**: `data-x-handle` on `#avatar` in `index.html` (currently `aollivier82`). The
   picture is fetched live from X through unavatar.io, so changing it on X changes it here
   (caches can take up to a day). It links to the X profile. If it can't load, the initials show.
-- **Popup content**: the popup is one panel in `index.html` (`.sheet`), retitled for each sign by
-  `setupSheets()` in `js/app.js`. Put each section's content in `.sheet-body`.
+- **Popup content**: each sign's popup shows the `<template id="sheet-…">` in `index.html` that
+  matches its link (`#games` → `sheet-games`). Games has a Balloon Bats entry (images in
+  `assets/balloon-bats/`, from balloonbatsvr.com); Writing, Videos and About are still empty.
+  Copy the `.entry` block to add more.
 - **The four sections**: the links inside `<nav class="hits">` in `index.html`. The 3D signs are
   drawn from them, so changing the text changes the sign (the typewriter types whatever the
   second label says). To have the signs go to real pages
